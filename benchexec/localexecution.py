@@ -30,6 +30,9 @@ STOPPED_BY_INTERRUPT = False
 
 
 def init(config, benchmark):
+    # print function name for debugging
+    print(sys._getframe().f_code.co_name)
+
     config.containerargs = {}
     if config.container:
         config.containerargs = containerexecutor.handle_basic_container_args(config)
@@ -54,6 +57,8 @@ def get_system_info():
 
 
 def execute_benchmark(benchmark, output_handler):
+    #print function name for debugging
+    print(sys._getframe().f_code.co_name)
 
     run_sets_executed = 0
 
@@ -181,6 +186,9 @@ def execute_benchmark(benchmark, output_handler):
 def _execute_run_set(
     runSet, benchmark, output_handler, coreAssignment, memoryAssignment, cpu_packages
 ):
+    # print function name for debugging
+    print(sys._getframe().f_code.co_name)
+
     # get times before runSet
     energy_measurement = EnergyMeasurement.create_if_supported()
     ruBefore = resource.getrusage(resource.RUSAGE_CHILDREN)
@@ -262,11 +270,17 @@ class _Worker(threading.Thread):
     A Worker is a deamonic thread, that takes jobs from the working_queue and runs them.
     """
 
+    # print class name for debugging
+    print(sys._getframe().f_code.co_name)
+
     working_queue = queue.Queue()
 
     def __init__(
         self, benchmark, my_cpus, my_memory_nodes, output_handler, run_finished_callback
     ):
+        # print function name for debugging
+        print(sys._getframe().f_code.co_name)
+
         threading.Thread.__init__(self)  # constuctor of superclass
         self.run_finished_callback = run_finished_callback
         self.benchmark = benchmark
@@ -279,6 +293,9 @@ class _Worker(threading.Thread):
         self.start()
 
     def run(self):
+        # print function name for debugging
+        print(sys._getframe().f_code.co_name)
+
         while not STOPPED_BY_INTERRUPT:
             try:
                 currentRun = _Worker.working_queue.get_nowait()
@@ -303,6 +320,10 @@ class _Worker(threading.Thread):
         This function executes the tool with a sourcefile with options.
         It also calls functions for output before and after the run.
         """
+
+        # print function name for debugging
+        print(sys._getframe().f_code.co_name)
+
         self.output_handler.output_before_run(run)
         benchmark = self.benchmark
 
