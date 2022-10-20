@@ -29,6 +29,7 @@ WORKER_THREADS = []
 STOPPED_BY_INTERRUPT = False
 
 
+
 def init(config, benchmark):
     # print function name for debugging
     print(sys._getframe().f_code.co_name)

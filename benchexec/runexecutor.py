@@ -309,7 +309,7 @@ class RunExecutor(containerexecutor.ContainerExecutor):
         self, cleanup_temp_dir=True, additional_cgroup_subsystems=[], *args, **kwargs
     ):
         """
-        Create an instance of of RunExecutor.
+        Create an instance of RunExecutor.
         @param cleanup_temp_dir Whether to remove the temporary directories created for the run.
         @param additional_cgroup_subsystems List of additional cgroup subsystems that should be required and used for runs.
         """

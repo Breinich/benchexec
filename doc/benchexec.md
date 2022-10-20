@@ -221,7 +221,7 @@ Some additional technical information is also present in the documentation on [r
 
 
 ### Extending BenchExec
-BenchExec executes all runs on the local machine.
+**BenchExec executes all runs on the local machine.
 In some cases, it might be desired to use for example some cloud service
 to execute the commands, and BenchExec should only handle the benchmark definition
 and aggregate the results.
@@ -230,4 +230,4 @@ which is responsible for executing a collection of runs, by something else.
 To do so, inherit from the BenchExec main class `benchexec.BenchExec`
 and override the necessary methods such as `load_executor`
 (which by default returns the `benchexec.localexecution` module),
-`create_argument_parser` (to add your own command-line arguments) etc.
+`create_argument_parser` (to add your own command-line arguments) etc.**
