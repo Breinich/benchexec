@@ -354,8 +354,10 @@ class BenchExec(object):
         May be overridden for replacing the executor,
         for example with an implementation that delegates to some cloud service.
         """
+
+        # changes: localexecution -> outerexecution
         logging.debug("This is benchexec %s.", __version__)
-        from . import localexecution as executor
+        from . import outerexecution as executor
 
         return executor
 
