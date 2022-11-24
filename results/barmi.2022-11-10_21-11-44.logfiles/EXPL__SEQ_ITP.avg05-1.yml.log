@@ -1,0 +1,36 @@
+/home/bajnok/theta-start.sh /home/bajnok/sv-benchmarks/c/reducercommutativity/avg05-1.i --maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain EXPL --refinement SEQ_ITP
+
+
+--------------------------------------------------------------------------------
+
+
+LD_LIBRARY_PATH=/home/bajnok/lib java -Xss120m -Xmx14210m -jar /home/bajnok/theta.jar --maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain EXPL --refinement SEQ_ITP --input /home/bajnok/sv-benchmarks/c/reducercommutativity/avg05-1.i --smt-home /home/bajnok/solvers
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+WARNING: signedness of the type char is implementation specific. Right now it is interpreted as a signed char.
+Time of model transformation: 4000ms
+java.lang.Exception: Error while running algorithm: ClassCastException class com.microsoft.z3.BoolExpr cannot be cast to class com.microsoft.z3.Quantifier (com.microsoft.z3.BoolExpr and com.microsoft.z3.Quantifier are in unnamed module of loader 'app')
+	at hu.bme.mit.theta.xcfa.cli.XcfaCli.check(XcfaCli.java:555)
+	at hu.bme.mit.theta.xcfa.cli.XcfaCli.executeSingleConfiguration(XcfaCli.java:502)
+	at hu.bme.mit.theta.xcfa.cli.XcfaCli.run(XcfaCli.java:429)
+	at hu.bme.mit.theta.xcfa.cli.XcfaCli.main(XcfaCli.java:241)
+Caused by: java.lang.ClassCastException: class com.microsoft.z3.BoolExpr cannot be cast to class com.microsoft.z3.Quantifier (com.microsoft.z3.BoolExpr and com.microsoft.z3.Quantifier are in unnamed module of loader 'app')
+	at hu.bme.mit.theta.solver.z3.Z3TermTransformer.transform(Z3TermTransformer.java:193)
+	at hu.bme.mit.theta.solver.z3.Z3TermTransformer.transformForall(Z3TermTransformer.java:370)
+	at hu.bme.mit.theta.solver.z3.Z3TermTransformer.transformQuantifier(Z3TermTransformer.java:330)
+	at hu.bme.mit.theta.solver.z3.Z3TermTransformer.transform(Z3TermTransformer.java:194)
+	at hu.bme.mit.theta.solver.z3.Z3TermTransformer.toExpr(Z3TermTransformer.java:131)
+	at hu.bme.mit.theta.solver.z3.Z3ItpSolver.getInterpolant(Z3ItpSolver.java:104)
+	at hu.bme.mit.theta.analysis.expr.refinement.ExprTraceSeqItpChecker.check(ExprTraceSeqItpChecker.java:97)
+	at hu.bme.mit.theta.analysis.expr.refinement.SingleExprTraceRefiner.refine(SingleExprTraceRefiner.java:77)
+	at hu.bme.mit.theta.analysis.algorithm.cegar.CegarChecker.check(CegarChecker.java:90)
+	at hu.bme.mit.theta.xcfa.analysis.common.XcfaConfig.check(XcfaConfig.java:39)
+	at hu.bme.mit.theta.xcfa.cli.XcfaCli.check(XcfaCli.java:548)
+	... 3 more

@@ -1,0 +1,63 @@
+   BENCHMARK INFORMATION
+benchmark definition:    /home/bajnok/barmi.xml
+name:                    barmi
+run sets:                PRED_CART__BW_BIN_ITP.ReachSafety, EXPL__SEQ_ITP.ReachSafety
+date:                    Thu, 2022-11-10 19:42:19 CET
+tool:                    Theta theta-4.2.1
+tool executable:         /home/bajnok/theta-start.sh
+options:                 --maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3
+resource limits:
+- memory:                6000.0 MB
+- time:                  20 s
+- cpu cores:             4
+hardware requirements:
+- cpu cores:             4
+- memory:                6000.0 MB
+------------------------------------------------------------
+
+   SYSTEM INFORMATION
+host:                    Pasztor
+os:                      Linux-5.15.68.1-microsoft-standard-WSL2-x86_64-with-glibc2.29
+cpu:                     Intel Core i3-1005G1 CPU @ 1.20GHz
+- cores:                 4
+- max frequency:         1190.402 MHz
+ram:                     4002.205696 MB
+------------------------------------------------------------
+
+
+
+PRED_CART__BW_BIN_ITP.ReachSafety
+Run set 1 of 2 with options '--maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain PRED_CART --refinement BW_BIN_ITP' and propertyfile 'None'
+
+inputfile                                               status                       cpu time   wall time        host
+---------------------------------------------------------------------------------------------------------------------
+array-examples/sanfoundry_24-1.yml                      
+array-examples/sanfoundry_43_ground.yml                 
+array-examples/standard_sentinel-2.yml                  
+array-examples/standard_sentinel.i.v+cfa-reducer.yml    
+reducercommutativity/avg05-1.yml                        
+---------------------------------------------------------------------------------------------------------------------
+Run set 1                                               done                            54.99       26.77           -
+
+
+EXPL__SEQ_ITP.ReachSafety
+Run set 2 of 2 with options '--maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain EXPL --refinement SEQ_ITP' and propertyfile 'None'
+
+inputfile                                               status                       cpu time   wall time        host
+---------------------------------------------------------------------------------------------------------------------
+array-examples/sanfoundry_24-1.yml                      
+array-examples/sanfoundry_43_ground.yml                 
+array-examples/standard_sentinel-2.yml                  
+array-examples/standard_sentinel.i.v+cfa-reducer.yml    
+reducercommutativity/avg05-1.yml                        
+---------------------------------------------------------------------------------------------------------------------
+Run set 2                                               done                            72.95       47.37           -
+
+Statistics:              0 Files
+  correct:               0
+    correct true:        0
+    correct false:       0
+  incorrect:             0
+    incorrect true:      0
+    incorrect false:     0
+  unknown:               0

@@ -1,0 +1,6 @@
+/home/bajnok/theta-start.sh /home/bajnok/sv-benchmarks/c/array-examples/standard_sentinel.i.v+cfa-reducer.c --maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain PRED_CART --refinement BW_BIN_ITP
+
+
+--------------------------------------------------------------------------------
+
+

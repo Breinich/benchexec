@@ -6,13 +6,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-import os
 import queue
+import re
 import resource
 import sys
 import threading
 import time
 import csv
+import datetime
+
+from jproperties import Properties
 
 from benchexec import BenchExecException
 from benchexec import cgroups
@@ -25,10 +28,10 @@ from benchexec import tooladapter
 from benchexec import util
 from benchexec.intel_cpu_energy import EnergyMeasurement
 
+from typing import cast, Optional
 
 WORKER_THREADS = []
 STOPPED_BY_INTERRUPT = False
-
 
 
 def init(config, benchmark):
@@ -39,7 +42,7 @@ def init(config, benchmark):
     if config.container:
         config.containerargs = containerexecutor.handle_basic_container_args(config)
         if config.containerargs["container_tmpfs"] and (
-            config.filesCountLimit or config.filesSizeLimit
+                config.filesCountLimit or config.filesSizeLimit
         ):
             sys.exit(
                 "Files-count limit and files-size limit are not supported "
@@ -59,7 +62,7 @@ def get_system_info():
 
 
 def execute_benchmark(benchmark, output_handler):
-    #print function name for debugging
+    # print function name for debugging
     print(sys._getframe().f_code.co_name)
 
     run_sets_executed = 0
@@ -67,9 +70,9 @@ def execute_benchmark(benchmark, output_handler):
     logging.debug("I will use %s threads.", benchmark.num_of_threads)
 
     if (
-        benchmark.requirements.cpu_model
-        or benchmark.requirements.cpu_cores != benchmark.rlimits.cpu_cores
-        or benchmark.requirements.memory != benchmark.rlimits.memory
+            benchmark.requirements.cpu_model
+            or benchmark.requirements.cpu_cores != benchmark.rlimits.cpu_cores
+            or benchmark.requirements.memory != benchmark.rlimits.memory
     ):
         logging.warning(
             "Ignoring specified resource requirements in local-execution mode, "
@@ -186,7 +189,7 @@ def execute_benchmark(benchmark, output_handler):
 
 
 def _execute_run_set(
-    runSet, benchmark, output_handler, coreAssignment, memoryAssignment, cpu_packages
+        runSet, benchmark, output_handler, coreAssignment, memoryAssignment, cpu_packages
 ):
     # print function name for debugging
     print(sys._getframe().f_code.co_name)
@@ -242,7 +245,7 @@ def _execute_run_set(
     usedWallTime = walltime_after - walltime_before
     ruAfter = resource.getrusage(resource.RUSAGE_CHILDREN)
     usedCpuTime = (ruAfter.ru_utime + ruAfter.ru_stime) - (
-        ruBefore.ru_utime + ruBefore.ru_stime
+            ruBefore.ru_utime + ruBefore.ru_stime
     )
     if energy and cpu_packages:
         energy = {pkg: energy[pkg] for pkg in energy if pkg in cpu_packages}
@@ -278,7 +281,7 @@ class _Worker(threading.Thread):
     working_queue = queue.Queue()
 
     def __init__(
-        self, benchmark, my_cpus, my_memory_nodes, output_handler, run_finished_callback
+            self, benchmark, my_cpus, my_memory_nodes, output_handler, run_finished_callback
     ):
         # print function name for debugging
         print(sys._getframe().f_code.co_name)
@@ -357,26 +360,27 @@ class _Worker(threading.Thread):
         #     files_count_limit=benchmark.config.filesCountLimit,
         #     files_size_limit=benchmark.config.filesSizeLimit,
 
-        with open('command.csv', mode='w') as output:
+        # print the commands of the scenarios to run in csv for runexec
+        with open('command.csv', mode='a') as output:
             output_writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
-            output_writer.writerow( [args,
-            run.log_file,
-            run.result_files_folder,
-            benchmark.result_files_patterns,
-            benchmark.rlimits.cputime_hard,
-            benchmark.rlimits.cputime,
-            benchmark.rlimits.walltime,
-            self.my_cpus,
-            self.my_memory_nodes,
-            benchmark.rlimits.memory,
-            benchmark.environment(),
-            benchmark.working_directory(),
-            benchmark.config.maxLogfileSize,
-            benchmark.config.filesCountLimit,
-            benchmark.config.filesSizeLimit],
-                                    )
-        # debug
-            print("FILE WROTE OUT")
+            output_writer.writerow([args,
+                                    run.log_file,
+                                    run.result_files_folder,
+                                    benchmark.result_files_patterns,
+                                    benchmark.rlimits.cputime_hard,
+                                    benchmark.rlimits.cputime,
+                                    benchmark.rlimits.walltime,
+                                    self.my_cpus,
+                                    self.my_memory_nodes,
+                                    benchmark.rlimits.memory,
+                                    benchmark.environment(),
+                                    benchmark.working_directory(),
+                                    benchmark.config.maxLogfileSize,
+                                    benchmark.config.filesCountLimit,
+                                    benchmark.config.filesSizeLimit,
+                                    benchmark.config.containerargs],
+                                   )
+
 
         with open('command.csv') as input:
             input_reader = csv.reader(input, delimiter=';')
@@ -418,8 +422,8 @@ class _Worker(threading.Thread):
                 env = {}
                 if row[10] != "{}":
                     env = dict((a[1:-1], b[1:-1])
-                     for a, b in (element.split(':')
-                                  for element in row[10][1:-1].split(', ')))
+                               for a, b in (element.split(':')
+                                            for element in row[10][1:-1].split(', ')))
                 w_dir = row[11]
 
                 max_lfs = None
@@ -434,7 +438,38 @@ class _Worker(threading.Thread):
                 if row[14].isnumeric():
                     files_sl = int(row[14])
 
-                run_result = self.run_executor.execute_run(
+                param_dict = {}
+                if row[15] != "{}":
+                    temp1 = row[15][1:-1].split('{')
+                    temp2 = temp1[1].split('}')
+                    temp3 = temp1[0].split(', ')
+
+                    # key of the value, that is a dict
+                    xtra = temp3.pop(-1)[1:-3]
+
+                    for element in temp3:
+                        element = element.split(': ')
+                        param_dict[element[0][1:-1]] = element[1]
+
+                    val_dict = {}
+                    if len(temp2) > 1:
+                        for stuff in temp2[0].split(', '):
+                            stuff = stuff.split(': ')
+                            val_dict[stuff[0][1:-1]] = stuff[1][1:-1]
+                    param_dict[xtra] = val_dict
+
+                for item in temp2[1].split(', '):
+                    if item != "":
+                        item = item.split(': ')
+                        param_dict[item[0][1:-1]] = item[1]
+
+                for key in param_dict.keys():
+                    if param_dict.get(key) == "True":
+                        param_dict[key] = True
+                    elif param_dict.get(key) == "False":
+                        param_dict[key] = False
+
+                run_result = RunExecutor(**param_dict).execute_run(
                     args2,
                     output_filename=out_fn,
                     output_dir=out_dir,
@@ -452,9 +487,69 @@ class _Worker(threading.Thread):
                     files_size_limit=files_sl,
                 )
 
+                # with open("result.txt", "w") as res_txt:
+                 #    res_txt.write(run_result.__str__())
+                #     res_txt.close()
+
+                result_file = open("result.properties", "w")
+
+                result = run_result.copy()
+                exit_code = cast(Optional[util.ProcessExitCode], result.pop("exitcode", None))
+
+                def print_optional_result(file, key, b=False):
+                    if key in result:
+                        file.write(f"{key}={result[key]}\n")
+                        if b:
+                            print(key, result[key])
 
 
 
+                # output results
+                print_optional_result(result_file, "starttime")
+                print_optional_result(result_file, "terminationreason")
+
+                # if exit_code is not None and exit_code.value is not None:
+                #     result_file.write(f"returnvalue={exit_code.value}\n")
+                # if exit_code is not None and exit_code.signal is not None:
+                #     result_file.write(f"exitsignal={exit_code.signal}\n")
+
+                result_file.write(f"exitcode={repr(exit_code)}\n")
+
+                print_optional_result(result_file, "walltime")
+                print_optional_result(result_file, "cputime")
+                for key in sorted(result.keys()):
+                    if key.startswith("cputime-"):
+                        result_file.write(f"{key}={result[key]:.9f}\n")
+                print_optional_result(result_file, "memory")
+                print_optional_result(result_file, "blkio-read")
+                print_optional_result(result_file, "blkio-write")
+                print_optional_result(result_file, "exitcode", True)
+
+                result_file.close()
+
+                configs = Properties()
+                with open('result.properties', 'rb') as config_file:
+                    configs.load(config_file)
+
+                items_view = configs.items()
+                result_dict = {}
+
+                for item in items_view:
+                    if item[0] == 'exitcode':
+
+                        # print(item[1].data)
+                        result_dict[item[0]] = util.ProcessExitCode(raw=cast(Optional[float], item[1].data[16:-1].split(', ')[0].split('=')[1]), value=cast(Optional[float], item[1].data[16:-1].split(', ')[1].split('=')[1]), signal=cast(Optional[float], item[1].data[16:-1].split(', ')[2].split('=')[1]))
+                    elif item[0] == 'starttime':
+                        result_dict[item[0]] = item[1].data
+                    else:
+                        if re.compile('.*\..*').match(item[1].data):
+                            result_dict[item[0]] = float(item[1].data)
+                        elif re.compile('[0-9]').match(item[1].data):
+                            result_dict[item[0]] = int(item[1].data)
+                        else:
+                            result_dict[item[0]] = item[1].data
+
+                print(result_dict)
 
         #     args,
         #     output_filename=run.log_file,
@@ -502,7 +597,7 @@ class _Worker(threading.Thread):
         #     run_result["memoryNodes"] = self.my_memory_nodes
 
         # result processing
-        run.set_result(run_result)
+        run.set_result(result_dict)
 
         self.output_handler.output_after_run(run)
         return None

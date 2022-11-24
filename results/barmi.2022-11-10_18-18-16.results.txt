@@ -1,0 +1,64 @@
+   BENCHMARK INFORMATION
+benchmark definition:    /home/bajnok/barmi.xml
+name:                    barmi
+run sets:                PRED_CART__BW_BIN_ITP.ReachSafety, EXPL__SEQ_ITP.ReachSafety
+date:                    Thu, 2022-11-10 18:18:16 CET
+tool:                    Theta theta-4.2.1
+tool executable:         /home/bajnok/theta-start.sh
+options:                 --maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3
+resource limits:
+- memory:                6000.0 MB
+- time:                  20 s
+- cpu cores:             4
+hardware requirements:
+- cpu cores:             4
+- memory:                6000.0 MB
+------------------------------------------------------------
+
+   SYSTEM INFORMATION
+host:                    Pasztor
+os:                      Linux-5.15.68.1-microsoft-standard-WSL2-x86_64-with-glibc2.29
+cpu:                     Intel Core i3-1005G1 CPU @ 1.20GHz
+- cores:                 4
+- max frequency:         1190.402 MHz
+ram:                     4002.205696 MB
+------------------------------------------------------------
+
+
+
+PRED_CART__BW_BIN_ITP.ReachSafety
+Run set 1 of 2 with options '--maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain PRED_CART --refinement BW_BIN_ITP' and propertyfile 'None'
+
+inputfile                                               status                       cpu time   wall time        host
+---------------------------------------------------------------------------------------------------------------------
+array-examples/sanfoundry_24-1.yml                      true                             7.46        2.40        None
+array-examples/sanfoundry_43_ground.yml                 true                             3.64        1.25        None
+array-examples/standard_sentinel-2.yml                  true                             5.04        1.61        None
+array-examples/standard_sentinel.i.v+cfa-reducer.yml    true                            11.21        5.62        None
+reducercommutativity/avg05-1.yml                        TIMEOUT                         20.71       10.90        None
+---------------------------------------------------------------------------------------------------------------------
+Run set 1                                               done                            48.10       25.14           -
+
+
+EXPL__SEQ_ITP.ReachSafety
+Run set 2 of 2 with options '--maxenum 1 --precgranularity GLOBAL --loglevel RESULT --abstraction-solver Z3 --refinement-solver Z3 --domain EXPL --refinement SEQ_ITP' and propertyfile 'None'
+
+inputfile                                               status                       cpu time   wall time        host
+---------------------------------------------------------------------------------------------------------------------
+array-examples/sanfoundry_24-1.yml                      TIMEOUT                         21.56        8.97        None
+array-examples/sanfoundry_43_ground.yml                 true                             3.69        1.27        None
+array-examples/standard_sentinel-2.yml                  TIMEOUT                         20.03       14.85        None
+array-examples/standard_sentinel.i.v+cfa-reducer.yml    TIMEOUT                         20.14       14.58        None
+reducercommutativity/avg05-1.yml                        unknown                          8.41        2.97        None
+---------------------------------------------------------------------------------------------------------------------
+Run set 2                                               done                            73.87       46.83           -
+
+Statistics:             10 Files
+  correct:               5
+    correct true:        5
+    correct false:       0
+  incorrect:             0
+    incorrect true:      0
+    incorrect false:     0
+  unknown:               5
+  Score:                10 (max: 20)
