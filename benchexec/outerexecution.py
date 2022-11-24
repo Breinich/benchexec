@@ -242,8 +242,10 @@ def _execute_run_set(
     # get times after runSet
     walltime_after = time.monotonic()
     energy = energy_measurement.stop() if energy_measurement else None
+    # TODO korrigálni kell
     usedWallTime = walltime_after - walltime_before
     ruAfter = resource.getrusage(resource.RUSAGE_CHILDREN)
+    # TODO korrigálni kell
     usedCpuTime = (ruAfter.ru_utime + ruAfter.ru_stime) - (
             ruBefore.ru_utime + ruBefore.ru_stime
     )
@@ -292,7 +294,8 @@ class _Worker(threading.Thread):
         self.my_cpus = my_cpus
         self.my_memory_nodes = my_memory_nodes
         self.output_handler = output_handler
-        self.run_executor = RunExecutor(**benchmark.config.containerargs)
+        # not needed
+        # self.run_executor = RunExecutor(**benchmark.config.containerargs)
         self.setDaemon(True)
 
         self.start()
