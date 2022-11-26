@@ -420,6 +420,12 @@ class _Worker(threading.Thread):
                 elif item[0] == 'starttime':
                     result_dict[item[0]] = item[1].data
 
+                elif item[0] == 'log_file':
+                    run.log_file = item[1].data
+
+                elif item[0] == 'result_files_folder':
+                    run.result_files_folder = item[1].data
+
                 else:
                     if re.compile('.*\..*').match(item[1].data):
                         result_dict[item[0]] = float(item[1].data)
