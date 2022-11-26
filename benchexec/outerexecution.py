@@ -5,6 +5,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import csv
 import logging
 import queue
 import re
@@ -12,8 +13,7 @@ import resource
 import sys
 import threading
 import time
-import csv
-import datetime
+from typing import cast, Optional
 
 from jproperties import Properties
 
@@ -21,17 +21,19 @@ from benchexec import BenchExecException
 from benchexec import cgroups
 from benchexec import containerexecutor
 from benchexec import resources
-from benchexec.runexecutor import RunExecutor
-from benchexec.pqos import Pqos
 from benchexec import systeminfo
 from benchexec import tooladapter
 from benchexec import util
 from benchexec.intel_cpu_energy import EnergyMeasurement
-
-from typing import cast, Optional
+from benchexec.pqos import Pqos
 
 WORKER_THREADS = []
 STOPPED_BY_INTERRUPT = False
+WRITE = True
+write_folder = ""
+READ = False
+read_folder = ""
+
 
 
 def init(config, benchmark):
@@ -55,6 +57,19 @@ def init(config, benchmark):
     tool_locator = tooladapter.create_tool_locator(config)
     benchmark.executable = benchmark.tool.executable(tool_locator)
     benchmark.tool_version = benchmark.tool.version(benchmark.executable)
+
+    global read_folder, write_folder, READ, WRITE
+
+    WRITE = config.outer_write
+    READ = config.outer_read
+    write_folder = config.write_folder
+    if write_folder != "":
+        if write_folder[-1] != '/':
+            write_folder += '/'
+    read_folder = config.read_folder
+    if read_folder != "":
+        if read_folder[-1] != '/':
+            read_folder += '/'
 
 
 def get_system_info():
@@ -362,60 +377,63 @@ class _Worker(threading.Thread):
         #     files_size_limit=benchmark.config.filesSizeLimit
         #
 
-        # print the commands of the scenarios to run to a csv file for runexec
-        with open('command.csv', mode='a') as output:
-            output_writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
-            output_writer.writerow([args,
-                                    run.log_file,
-                                    run.result_files_folder,
-                                    benchmark.result_files_patterns,
-                                    benchmark.rlimits.cputime_hard,
-                                    benchmark.rlimits.cputime,
-                                    benchmark.rlimits.walltime,
-                                    self.my_cpus,
-                                    self.my_memory_nodes,
-                                    benchmark.rlimits.memory,
-                                    benchmark.environment(),
-                                    benchmark.working_directory(),
-                                    benchmark.config.maxLogfileSize,
-                                    benchmark.config.filesCountLimit,
-                                    benchmark.config.filesSizeLimit,
-                                    benchmark.config.containerargs],
-                                   )
+        if WRITE and not READ:
 
-        # TODO szétválasztani a beolvasást és a kiírást
+            # print the execution parameters of the runs to a csv file for runexec
+            with open(write_folder+'command.csv', mode='a') as output:
+                output_writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
+                output_writer.writerow([args,
+                                        "/home/bajnok/benchexec/bin/"+run.log_file,
+                                        "/home/bajnok/benchexec/bin/"+run.result_files_folder,
+                                        benchmark.result_files_patterns,
+                                        benchmark.rlimits.cputime_hard,
+                                        benchmark.rlimits.cputime,
+                                        benchmark.rlimits.walltime,
+                                        self.my_cpus,
+                                        self.my_memory_nodes,
+                                        benchmark.rlimits.memory,
+                                        benchmark.environment(),
+                                        benchmark.working_directory(),
+                                        benchmark.config.maxLogfileSize,
+                                        benchmark.config.filesCountLimit,
+                                        benchmark.config.filesSizeLimit,
+                                        benchmark.config.containerargs],
+                                       )
 
-        # Reading the result of one executed run scenario
-        configs = Properties()
-        with open('result.properties', 'rb') as config_file:
-            configs.load(config_file)
+        elif READ and not WRITE:
 
-        items_view = configs.items()
-        result_dict = {}
+            # Reading the result of one executed run
+            configs = Properties()
+            with open(read_folder+run.log_file.split('/')[-1].split('.')[0]+"."+run.log_file.split('/')[-1].split('.')[1]+'.properties', 'rb') as config_file:
+                configs.load(config_file)
 
-        for item in items_view:
-            if item[0] == 'exitcode':
-                result_dict[item[0]] = util.ProcessExitCode(
-                    raw=cast(Optional[float], item[1].data[16:-1].split(', ')[0].split('=')[1]),
-                    value=cast(Optional[float], item[1].data[16:-1].split(', ')[1].split('=')[1]),
-                    signal=cast(Optional[float], item[1].data[16:-1].split(', ')[2].split('=')[1]))
+            items_view = configs.items()
+            result_dict = {}
 
-            elif item[0] == 'starttime':
-                result_dict[item[0]] = item[1].data
+            for item in items_view:
+                if item[0] == 'exitcode':
+                    result_dict[item[0]] = util.ProcessExitCode(
+                        raw=cast(Optional[float], item[1].data[16:-1].split(', ')[0].split('=')[1]),
+                        value=cast(Optional[float], item[1].data[16:-1].split(', ')[1].split('=')[1]),
+                        signal=cast(Optional[float], item[1].data[16:-1].split(', ')[2].split('=')[1]))
 
-            else:
-                if re.compile('.*\..*').match(item[1].data):
-                    result_dict[item[0]] = float(item[1].data)
-
-                elif re.compile('[0-9]').match(item[1].data):
-                    result_dict[item[0]] = int(item[1].data)
-
-                else:
+                elif item[0] == 'starttime':
                     result_dict[item[0]] = item[1].data
 
-        run.set_result(result_dict)
+                else:
+                    if re.compile('.*\..*').match(item[1].data):
+                        result_dict[item[0]] = float(item[1].data)
 
-        self.output_handler.output_after_run(run)
+                    elif re.compile('[0-9]').match(item[1].data):
+                        result_dict[item[0]] = int(item[1].data)
+
+                    else:
+                        result_dict[item[0]] = item[1].data
+
+            run.set_result(result_dict)
+
+            self.output_handler.output_after_run(run)
+
         return None
 
         #     args,
@@ -462,7 +480,6 @@ class _Worker(threading.Thread):
         #     run_result["cpuCores"] = self.my_cpus
         # if self.my_memory_nodes:
         #     run_result["memoryNodes"] = self.my_memory_nodes
-
 
     def stop(self):
         # asynchronous call to runexecutor,

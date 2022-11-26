@@ -334,6 +334,36 @@ class BenchExec(object):
             "--version", action="version", version="%(prog)s " + __version__
         )
 
+        parser.add_argument(
+            "--outer_write",
+            action="store_true",
+            default=False,
+            help="Set the executor to outerexecution to execute runs outside benchexec."
+        )
+
+        parser.add_argument(
+            "--outer_outfolder",
+            action="store",
+            default="",
+            dest='write_folder',
+            help="Specify the destination folder, to write the command.csv to for the outer execution of the runs."
+        )
+
+        parser.add_argument(
+            "--outer_read",
+            action="store_true",
+            default=False,
+            help="Set the executor to outerexecution and set its behaviour to read the run results."
+        )
+
+        parser.add_argument(
+            "--outer_infolder",
+            action="store",
+            default="",
+            dest='read_folder',
+            help="Specify the folder, from where read the *.properties result files of the runs."
+        )
+
         add_container_args(parser)
 
         return parser
@@ -355,9 +385,11 @@ class BenchExec(object):
         for example with an implementation that delegates to some cloud service.
         """
 
-        # changes: localexecution -> outerexecution
         logging.debug("This is benchexec %s.", __version__)
-        from . import outerexecution as executor
+        if self.config.outer_write or self.config.outer_read:
+            from . import outerexecution as executor
+        else:
+            from . import localexecution as executor
 
         return executor
 
