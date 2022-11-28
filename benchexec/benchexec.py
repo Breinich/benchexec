@@ -160,8 +160,10 @@ class BenchExec(object):
             default=self.DEFAULT_OUTPUT_PATH,
             help="""
                 Output prefix for the generated results.
-                If the path is a folder files are put into it,
+                If the path is a folder, files are put into it,
                 otherwise it is used as a prefix for the resulting files.
+                Do not specify the output_path option with a folder during 
+                the outer execution mode!
             """,
         )
 
@@ -345,8 +347,13 @@ class BenchExec(object):
             "--outer_outfolder",
             action="store",
             default="",
-            dest='write_folder',
-            help="Specify the destination folder, to write the command.csv to for the outer execution of the runs."
+            dest="write_folder",
+            help="""Output prefix for the generated command.csv.
+                If the path is a folder, file is put into it,
+                otherwise it is used as a prefix for the file.
+                Do not specify the output_path option with a folder during 
+                the outer execution mode!
+            """
         )
 
         parser.add_argument(
@@ -360,8 +367,11 @@ class BenchExec(object):
             "--outer_infolder",
             action="store",
             default="",
-            dest='read_folder',
-            help="Specify the folder, from where read the *.properties result files of the runs."
+            dest="read_folder",
+            help="""Input prefix for the generated results (*.properties, log and other result files).
+                If the path is a folder, files are read from it,
+                otherwise it is used as a prefix for the result-files.
+            """
         )
 
         add_container_args(parser)

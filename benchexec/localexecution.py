@@ -31,8 +31,6 @@ STOPPED_BY_INTERRUPT = False
 
 
 def init(config, benchmark):
-    # print function name for debugging
-    print(sys._getframe().f_code.co_name)
 
     config.containerargs = {}
     if config.container:
@@ -187,8 +185,6 @@ def execute_benchmark(benchmark, output_handler):
 def _execute_run_set(
     runSet, benchmark, output_handler, coreAssignment, memoryAssignment, cpu_packages
 ):
-    # print function name for debugging
-    print(sys._getframe().f_code.co_name)
 
     # get times before runSet
     energy_measurement = EnergyMeasurement.create_if_supported()
@@ -279,8 +275,6 @@ class _Worker(threading.Thread):
     def __init__(
         self, benchmark, my_cpus, my_memory_nodes, output_handler, run_finished_callback
     ):
-        # print function name for debugging
-        print(sys._getframe().f_code.co_name)
 
         threading.Thread.__init__(self)  # constuctor of superclass
         self.run_finished_callback = run_finished_callback
@@ -294,8 +288,6 @@ class _Worker(threading.Thread):
         self.start()
 
     def run(self):
-        # print function name for debugging
-        print(sys._getframe().f_code.co_name)
 
         while not STOPPED_BY_INTERRUPT:
             try:
@@ -321,9 +313,6 @@ class _Worker(threading.Thread):
         This function executes the tool with a sourcefile with options.
         It also calls functions for output before and after the run.
         """
-
-        # print function name for debugging
-        print(sys._getframe().f_code.co_name)
 
         self.output_handler.output_before_run(run)
         benchmark = self.benchmark

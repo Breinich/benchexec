@@ -35,7 +35,6 @@ READ = False
 read_folder = ""
 
 
-
 def init(config, benchmark):
     # print function name for debugging
     print(sys._getframe().f_code.co_name)
@@ -77,8 +76,6 @@ def get_system_info():
 
 
 def execute_benchmark(benchmark, output_handler):
-    # print function name for debugging
-    print(sys._getframe().f_code.co_name)
 
     run_sets_executed = 0
 
@@ -206,13 +203,19 @@ def execute_benchmark(benchmark, output_handler):
 def _execute_run_set(
         runSet, benchmark, output_handler, coreAssignment, memoryAssignment, cpu_packages
 ):
-    # print function name for debugging
-    print(sys._getframe().f_code.co_name)
 
     # get times before runSet
+
+    # not relevant during outer execution
     energy_measurement = EnergyMeasurement.create_if_supported()
+
+    # not relevant during outer execution
     ruBefore = resource.getrusage(resource.RUSAGE_CHILDREN)
-    walltime_before = time.monotonic()
+
+    # measured in other way during outer execution
+    # walltime_before = time.monotonic()
+
+    # not relevant during outer execution
     if energy_measurement:
         energy_measurement.start()
 
@@ -255,15 +258,30 @@ def _execute_run_set(
     assert unfinished_runs == 0 or STOPPED_BY_INTERRUPT
 
     # get times after runSet
-    walltime_after = time.monotonic()
+
+    # measured in other way during outer execution
+    # walltime_after = time.monotonic()
+
+    # not relevant during outer execution
     energy = energy_measurement.stop() if energy_measurement else None
-    # TODO korrigálni kell
-    usedWallTime = walltime_after - walltime_before
+
+    # summarizing the walltime-s of the runs of the executed runs of the runset
+    usedWallTime = 0
+    for run in runSet.runs:
+        if "walltime" in run.values.keys():
+            usedWallTime += run.values["walltime"]
+
+    # not relevant during outer execution
     ruAfter = resource.getrusage(resource.RUSAGE_CHILDREN)
-    # TODO korrigálni kell
-    usedCpuTime = (ruAfter.ru_utime + ruAfter.ru_stime) - (
-            ruBefore.ru_utime + ruBefore.ru_stime
-    )
+
+    # summarizing the cputime-s of the runs of the executed runs of the runset
+    usedCpuTime = 0
+    for run in runSet.runs:
+        if "cputime" in run.values.keys():
+            usedCpuTime += run.values["cputime"]
+
+    # TODO nem teljesen ertem mi van itt, ezt is osszegezzuk vhogy?
+    # not relevant during outer execution
     if energy and cpu_packages:
         energy = {pkg: energy[pkg] for pkg in energy if pkg in cpu_packages}
 
@@ -292,16 +310,11 @@ class _Worker(threading.Thread):
     A Worker is a deamonic thread, that takes jobs from the working_queue and runs them.
     """
 
-    # print class name for debugging
-    print(sys._getframe().f_code.co_name)
-
     working_queue = queue.Queue()
 
     def __init__(
             self, benchmark, my_cpus, my_memory_nodes, output_handler, run_finished_callback
     ):
-        # print function name for debugging
-        print(sys._getframe().f_code.co_name)
 
         threading.Thread.__init__(self)  # constuctor of superclass
         self.run_finished_callback = run_finished_callback
@@ -316,8 +329,6 @@ class _Worker(threading.Thread):
         self.start()
 
     def run(self):
-        # print function name for debugging
-        print(sys._getframe().f_code.co_name)
 
         while not STOPPED_BY_INTERRUPT:
             try:
@@ -343,9 +354,6 @@ class _Worker(threading.Thread):
         This function executes the tool with a sourcefile with options.
         It also calls functions for output before and after the run.
         """
-
-        # print function name for debugging
-        print(sys._getframe().f_code.co_name)
 
         self.output_handler.output_before_run(run)
         benchmark = self.benchmark
@@ -380,11 +388,11 @@ class _Worker(threading.Thread):
         if WRITE and not READ:
 
             # print the execution parameters of the runs to a csv file for runexec
-            with open(write_folder+'command.csv', mode='a') as output:
+            with open(write_folder + 'command.csv', mode='a') as output:
                 output_writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
                 output_writer.writerow([args,
-                                        "/home/bajnok/benchexec/bin/"+run.log_file,
-                                        "/home/bajnok/benchexec/bin/"+run.result_files_folder,
+                                        run.log_file,
+                                        run.result_files_folder,
                                         benchmark.result_files_patterns,
                                         benchmark.rlimits.cputime_hard,
                                         benchmark.rlimits.cputime,
@@ -404,7 +412,8 @@ class _Worker(threading.Thread):
 
             # Reading the result of one executed run
             configs = Properties()
-            with open(read_folder+run.log_file.split('/')[-1].split('.')[0]+"."+run.log_file.split('/')[-1].split('.')[1]+'.properties', 'rb') as config_file:
+            with open(read_folder + run.log_file.split('/')[-1].split('.')[0] + "." +
+                      run.log_file.split('/')[-1].split('.')[1] + '.properties', 'rb') as config_file:
                 configs.load(config_file)
 
             items_view = configs.items()
@@ -421,10 +430,10 @@ class _Worker(threading.Thread):
                     result_dict[item[0]] = item[1].data
 
                 elif item[0] == 'log_file':
-                    run.log_file = item[1].data
+                    run.log_file = read_folder + item[1].data
 
                 elif item[0] == 'result_files_folder':
-                    run.result_files_folder = item[1].data
+                    run.result_files_folder = read_folder + item[1].data
 
                 else:
                     if re.compile('.*\..*').match(item[1].data):
