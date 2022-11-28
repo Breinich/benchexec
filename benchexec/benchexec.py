@@ -162,8 +162,7 @@ class BenchExec(object):
                 Output prefix for the generated results.
                 If the path is a folder, files are put into it,
                 otherwise it is used as a prefix for the resulting files.
-                Do not specify the output_path option with a folder during 
-                the outer execution mode!
+                During the outer execution write mode it is set to empty string.
             """,
         )
 
@@ -351,8 +350,6 @@ class BenchExec(object):
             help="""Output prefix for the generated command.csv.
                 If the path is a folder, file is put into it,
                 otherwise it is used as a prefix for the file.
-                Do not specify the output_path option with a folder during 
-                the outer execution mode!
             """
         )
 
@@ -364,14 +361,9 @@ class BenchExec(object):
         )
 
         parser.add_argument(
-            "--outer_infolder",
+            "--outer_instance",
             action="store",
-            default="",
-            dest="read_folder",
-            help="""Input prefix for the generated results (*.properties, log and other result files).
-                If the path is a folder, files are read from it,
-                otherwise it is used as a prefix for the result-files.
-            """
+            help="Set the instance tag / date of the benchmark, that will be read during outer execution."
         )
 
         add_container_args(parser)
@@ -455,7 +447,7 @@ class BenchExec(object):
         Check and abort if the target directory for the benchmark results
         already exists in order to avoid overwriting results.
         """
-        if os.path.exists(benchmark.log_folder):
+        if os.path.exists(benchmark.log_folder) and not benchmark.config.outer_read:
             sys.exit(
                 f"Output directory {benchmark.log_folder} already exists, "
                 f"will not overwrite existing results."

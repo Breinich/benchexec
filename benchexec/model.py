@@ -263,7 +263,15 @@ class Benchmark(object):
                 )
 
         self.start_time = start_time
-        self.instance = start_time.strftime(util.TIMESTAMP_FILENAME_FORMAT)
+
+        if config.outer_read:
+            self.instance = config.outer_instance
+        else:
+            self.instance = start_time.strftime(util.TIMESTAMP_FILENAME_FORMAT)
+
+        if self.config.outer_write:
+            config.output_path = ""
+            self.config.output_path = ""
 
         self.output_base_name = f"{config.output_path}{self.name}.{self.instance}"
         self.log_folder = f"{self.output_base_name}.logfiles{os.path.sep}"

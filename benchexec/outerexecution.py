@@ -7,6 +7,7 @@
 
 import csv
 import logging
+import os.path
 import queue
 import re
 import resource
@@ -28,10 +29,6 @@ from benchexec.pqos import Pqos
 
 WORKER_THREADS = []
 STOPPED_BY_INTERRUPT = False
-WRITE = True
-write_folder = ""
-READ = False
-read_folder = ""
 
 
 def init(config, benchmark):
@@ -52,19 +49,6 @@ def init(config, benchmark):
     tool_locator = tooladapter.create_tool_locator(config)
     benchmark.executable = benchmark.tool.executable(tool_locator)
     benchmark.tool_version = benchmark.tool.version(benchmark.executable)
-
-    global read_folder, write_folder, READ, WRITE
-
-    WRITE = config.outer_write
-    READ = config.outer_read
-    write_folder = config.write_folder
-    if write_folder != "":
-        if write_folder[-1] != '/':
-            write_folder += '/'
-    read_folder = config.read_folder
-    if read_folder != "":
-        if read_folder[-1] != '/':
-            read_folder += '/'
 
 
 def get_system_info():
@@ -192,6 +176,12 @@ def execute_benchmark(benchmark, output_handler):
     pqos.reset_resources()
     output_handler.output_after_benchmark(STOPPED_BY_INTERRUPT)
 
+    if benchmark.config.outer_write:
+        util.printOut(
+            '\nCommand file for outer execution is written out, its path:\n' +
+            benchmark.config.write_folder + benchmark.output_base_name + '.command.csv'
+        )
+
     return 0
 
 
@@ -274,7 +264,6 @@ def _execute_run_set(
         if "cputime" in run.values.keys():
             usedCpuTime += run.values["cputime"]
 
-    # TODO nem teljesen ertem mi van itt, ezt is osszegezzuk vhogy?
     # not relevant during outer execution
     if energy and cpu_packages:
         energy = {pkg: energy[pkg] for pkg in energy if pkg in cpu_packages}
@@ -316,8 +305,6 @@ class _Worker(threading.Thread):
         self.my_cpus = my_cpus
         self.my_memory_nodes = my_memory_nodes
         self.output_handler = output_handler
-        # not needed
-        # self.run_executor = RunExecutor(**benchmark.config.containerargs)
         self.setDaemon(True)
 
         self.start()
@@ -379,10 +366,17 @@ class _Worker(threading.Thread):
         #     files_size_limit=benchmark.config.filesSizeLimit
         #
 
-        if WRITE and not READ:
+        if benchmark.config.outer_write and not benchmark.config.outer_read:
+            # check write folder
+            if benchmark.config.write_folder != "":
+                if benchmark.config.write_folder[-1] != '/':
+                    benchmark.config.write_folder += '/'
+
+            if not os.path.exists(benchmark.config.write_folder):
+                os.makedirs(benchmark.config.write_folder, exist_ok=True)
 
             # print the execution parameters of the runs to a csv file for runexec
-            with open(write_folder + 'command.csv', mode='a') as output:
+            with open(benchmark.config.write_folder + benchmark.output_base_name+'.command.csv', mode='a') as output:
                 output_writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_NONNUMERIC)
                 output_writer.writerow([args,
                                         run.log_file,
@@ -402,11 +396,11 @@ class _Worker(threading.Thread):
                                         benchmark.config.containerargs],
                                        )
 
-        elif READ and not WRITE:
+        elif benchmark.config.outer_read and not benchmark.config.outer_write:
 
             # Reading the result of one executed run
             configs = Properties()
-            with open(read_folder + run.log_file.split('/')[-1].split('.')[0] + "." +
+            with open(benchmark.config.output_path + run.log_file.split('/')[-1].split('.')[0] + "." +
                       run.log_file.split('/')[-1].split('.')[1] + '.properties', 'rb') as config_file:
                 configs.load(config_file)
 
@@ -424,10 +418,10 @@ class _Worker(threading.Thread):
                     result_dict[item[0]] = item[1].data
 
                 elif item[0] == 'log_file':
-                    run.log_file = read_folder + item[1].data
+                    log_file = benchmark.config.output_path + item[1].data
 
                 elif item[0] == 'result_files_folder':
-                    run.result_files_folder = read_folder + item[1].data
+                    result_files_folder = benchmark.config.output_path + item[1].data
 
                 else:
                     if re.compile('.*\..*').match(item[1].data):
@@ -438,6 +432,13 @@ class _Worker(threading.Thread):
 
                     else:
                         result_dict[item[0]] = item[1].data
+
+            # benchmark.output_base_name = f"{benchmark.config.read_folder+benchmark.config.output_path}{benchmark.name}.{instance}"
+            # benchmark.log_folder = f"{benchmark.output_base_name}.logfiles{os.path.sep}"
+            # benchmark.log_zip = f"{benchmark.output_base_name}.logfiles.zip"
+            # benchmark.result_files_folder = f"{benchmark.output_base_name}.files"
+            # print("benchmark mappings:\n"+benchmark.output_base_name+"\n"+benchmark.log_folder+"\n"+benchmark.log_zip +
+            #       "\n"+benchmark.result_files_folder+"\n")
 
             run.set_result(result_dict)
 
