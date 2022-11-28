@@ -174,11 +174,12 @@ def execute_benchmark(benchmark, output_handler):
             "Benchmark results are unreliable!"
         )
     pqos.reset_resources()
-    output_handler.output_after_benchmark(STOPPED_BY_INTERRUPT)
+    if not benchmark.config.outer_write:
+        output_handler.output_after_benchmark(STOPPED_BY_INTERRUPT)
 
     if benchmark.config.outer_write:
         util.printOut(
-            '\nCommand file for outer execution is written out, its path:\n' +
+            '\n\nCommand file for outer execution is written out, its path:\n' +
             benchmark.config.write_folder + benchmark.output_base_name + '.command.csv'
         )
 
@@ -203,7 +204,8 @@ def _execute_run_set(
     if energy_measurement:
         energy_measurement.start()
 
-    output_handler.output_before_run_set(runSet)
+    if not benchmark.config.outer_write:
+        output_handler.output_before_run_set(runSet)
 
     # put all runs into a queue
     for run in runSet.runs:
@@ -273,9 +275,10 @@ def _execute_run_set(
 
     if STOPPED_BY_INTERRUPT:
         output_handler.set_error("interrupted", runSet)
-    output_handler.output_after_run_set(
-        runSet, cputime=usedCpuTime, walltime=usedWallTime, energy=energy
-    )
+    if not benchmark.config.outer_write:
+        output_handler.output_after_run_set(
+            runSet, cputime=usedCpuTime, walltime=usedWallTime, energy=energy
+        )
 
 
 def stop():
@@ -336,7 +339,8 @@ class _Worker(threading.Thread):
         It also calls functions for output before and after the run.
         """
 
-        self.output_handler.output_before_run(run)
+        if not self.benchmark.config.outer_write:
+            self.output_handler.output_before_run(run)
         benchmark = self.benchmark
 
         args = run.cmdline()

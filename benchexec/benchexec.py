@@ -336,14 +336,15 @@ class BenchExec(object):
         )
 
         parser.add_argument(
-            "--outer_write",
+            "--outer-write",
             action="store_true",
             default=False,
+            dest="outer_write",
             help="Set the executor to outerexecution to execute runs outside benchexec."
         )
 
         parser.add_argument(
-            "--outer_outfolder",
+            "--outer-outfolder",
             action="store",
             default="",
             dest="write_folder",
@@ -354,15 +355,17 @@ class BenchExec(object):
         )
 
         parser.add_argument(
-            "--outer_read",
+            "--outer-read",
             action="store_true",
             default=False,
+            dest="outer_read",
             help="Set the executor to outerexecution and set its behaviour to read the run results."
         )
 
         parser.add_argument(
-            "--outer_instance",
+            "--outer-instance",
             action="store",
+            dest="outer_instance",
             help="Set the instance tag / date of the benchmark, that will be read during outer execution."
         )
 

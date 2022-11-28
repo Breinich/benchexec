@@ -92,11 +92,13 @@ class OutputHandler(object):
         if self.benchmark.rlimits.cpu_cores:
             corelimit = str(self.benchmark.rlimits.cpu_cores)
 
-        # create folder for file-specific log-files.
-        os.makedirs(benchmark.log_folder, exist_ok=True)
+        if not benchmark.config.outer_write:
+            # create folder for file-specific log-files.
+            os.makedirs(benchmark.log_folder, exist_ok=True)
 
         self.store_header_in_xml(version, memlimit, timelimit, corelimit)
-        self.write_header_to_log(sysinfo)
+        if not benchmark.config.outer_write:
+            self.write_header_to_log(sysinfo)
 
         if sysinfo:
             # store systemInfo in XML
@@ -112,7 +114,7 @@ class OutputHandler(object):
             )
         self.xml_file_names = []
 
-        if compress_results:
+        if compress_results and not benchmark.config.outer_write:
             self.log_zip = zipfile.ZipFile(
                 benchmark.log_zip, mode="w", compression=zipfile.ZIP_DEFLATED
             )
@@ -829,17 +831,18 @@ class OutputHandler(object):
 
     def close(self):
         """Do all necessary cleanup."""
-        self.txt_file.close()
+        if not self.benchmark.config.outer_write:
+            self.txt_file.close()
 
-        if self.compress_results:
-            with self.log_zip_lock:
-                zip_is_empty = not self.log_zip.namelist()
-                self.log_zip.close()
+            if self.compress_results:
+                with self.log_zip_lock:
+                    zip_is_empty = not self.log_zip.namelist()
+                    self.log_zip.close()
 
-                if zip_is_empty:
-                    # remove useless ZIP file, e.g., because all runs were skipped
-                    os.remove(self.benchmark.log_zip)
-                    self.all_created_files.remove(self.benchmark.log_zip)
+                    if zip_is_empty:
+                        # remove useless ZIP file, e.g., because all runs were skipped
+                        os.remove(self.benchmark.log_zip)
+                        self.all_created_files.remove(self.benchmark.log_zip)
 
         # remove useless log folder if it is empty,
         # e.g., because all logs were written to the ZIP file
