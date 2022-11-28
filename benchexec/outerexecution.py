@@ -12,7 +12,6 @@ import re
 import resource
 import sys
 import threading
-import time
 from typing import cast, Optional
 
 from jproperties import Properties
@@ -36,9 +35,6 @@ read_folder = ""
 
 
 def init(config, benchmark):
-    # print function name for debugging
-    print(sys._getframe().f_code.co_name)
-
     config.containerargs = {}
     if config.container:
         config.containerargs = containerexecutor.handle_basic_container_args(config)
@@ -76,7 +72,6 @@ def get_system_info():
 
 
 def execute_benchmark(benchmark, output_handler):
-
     run_sets_executed = 0
 
     logging.debug("I will use %s threads.", benchmark.num_of_threads)
@@ -203,7 +198,6 @@ def execute_benchmark(benchmark, output_handler):
 def _execute_run_set(
         runSet, benchmark, output_handler, coreAssignment, memoryAssignment, cpu_packages
 ):
-
     # get times before runSet
 
     # not relevant during outer execution
