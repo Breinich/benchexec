@@ -56,8 +56,6 @@ def get_system_info():
 
 
 def execute_benchmark(benchmark, output_handler):
-    #print function name for debugging
-    print(sys._getframe().f_code.co_name)
 
     run_sets_executed = 0
 
@@ -266,9 +264,6 @@ class _Worker(threading.Thread):
     """
     A Worker is a deamonic thread, that takes jobs from the working_queue and runs them.
     """
-
-    # print class name for debugging
-    print(sys._getframe().f_code.co_name)
 
     working_queue = queue.Queue()
 
