@@ -145,19 +145,25 @@ def execute_benchmark(benchmark, output_handler):
             break
 
         if not runSet.should_be_executed():
-            # print to terminal
-            util.printOut(
-                "\nSkipping run set"
-                + (" '" + runSet.name + "'" if runSet.name else "")
-            )
+            if benchmark.config.outer_write:
+                util.printOut(
+                    "\nSkipping run set"
+                    + (" '" + runSet.name + "'" if runSet.name else "")
+                )
+            else:
+                output_handler.output_for_skipping_run_set(runSet)
 
         elif not runSet.runs:
-            # print to terminal
-            util.printOut(
-                "\nSkipping run set"
-                + (" '" + runSet.name + "'" if runSet.name else "")
-                + (" " + "because it has no files")
-            )
+            if benchmark.config.outer_write:
+                util.printOut(
+                    "\nSkipping run set"
+                    + (" '" + runSet.name + "'" if runSet.name else "")
+                    + (" " + "because it has no files")
+                )
+            else:
+                output_handler.output_for_skipping_run_set(
+                    runSet, "because it has no files"
+                )
 
         else:
             run_sets_executed += 1
@@ -183,6 +189,10 @@ def execute_benchmark(benchmark, output_handler):
     pqos.reset_resources()
     if not benchmark.config.outer_write:
         output_handler.output_after_benchmark(STOPPED_BY_INTERRUPT)
+    else:
+        util.printOut(
+            "\nScript was interrupted by user, some runs may not be done.\n"
+        )
 
     if benchmark.config.outer_write:
         util.printOut(
