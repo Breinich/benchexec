@@ -15,7 +15,7 @@ import sys
 import threading
 from typing import cast, Optional
 
-from jproperties import Properties
+from benchexec.jproperties import Properties
 
 from benchexec import BenchExecException
 from benchexec import cgroups
@@ -145,11 +145,18 @@ def execute_benchmark(benchmark, output_handler):
             break
 
         if not runSet.should_be_executed():
-            output_handler.output_for_skipping_run_set(runSet)
+            # print to terminal
+            util.printOut(
+                "\nSkipping run set"
+                + (" '" + runSet.name + "'" if runSet.name else "")
+            )
 
         elif not runSet.runs:
-            output_handler.output_for_skipping_run_set(
-                runSet, "because it has no files"
+            # print to terminal
+            util.printOut(
+                "\nSkipping run set"
+                + (" '" + runSet.name + "'" if runSet.name else "")
+                + (" " + "because it has no files")
             )
 
         else:
