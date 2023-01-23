@@ -7,7 +7,13 @@ SPDX-FileCopyrightText: 2007-2020 Dirk Beyer <https://www.sosy-lab.org>
 SPDX-License-Identifier: Apache-2.0
 -->
 
-# BenchExec
+# BenchExec - extended version for distributed use-cases
+
+**Extension details:**
+- 4 new commandline arguments.
+- With specific options, the software is able to export the commands of the runs to a csv file, with which the [Runexec Runner](https://github.com/Breinich/runexec_runner/) tool will be able to execute the runsets at a different location or hardware.
+- Whith specific options, the software is able to collect and evaluate the results of the externally executed runsets from a given input folder.
+
 ## A Framework for Reliable Benchmarking and Resource Measurement
 
 [![Build Status](https://gitlab.com/sosy-lab/software/benchexec/badges/main/pipeline.svg)](https://gitlab.com/sosy-lab/software/benchexec/pipelines)
