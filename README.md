@@ -12,7 +12,7 @@ SPDX-License-Identifier: Apache-2.0
 **Extension details:**
 - 4 new commandline arguments.
 - With specific options, the software is able to export the commands of the runs to a csv file, with which the [Runexec Runner](https://github.com/Breinich/runexec_runner/) tool will be able to execute the runsets at a different location or hardware.
-- Whith specific options, the software is able to collect and evaluate the results of the externally executed runsets from a given input folder.
+- With specific options, the software is able to collect and evaluate the results of the externally executed runsets from a given input folder.
 
 **The original description of the software below:**
 
